@@ -1,0 +1,12 @@
+# docker-compose.yml
+services:
+  python_sock_serv_arm32v7-debian-python3_bullseye_release_f844d2af-1828-47b1-ab6e-bf839fcfffb6:
+    depends_on: []
+    devices:
+    - /dev/gpiochip0
+    image: gcldndocker/socket_server:v0
+    network_mode: host
+    ports: []
+    volumes:
+    - /sys/bus/iio/devices:/sys/bus/iio/devices:rw
+version: '2.4'

@@ -1,0 +1,70 @@
+FROM --platform=linux/arm64 torizon/qt5-wayland:2
+
+EXPOSE 1997
+
+
+# Make sure we don't get notifications we can't answer during building.
+ENV DEBIAN_FRONTEND="noninteractive"
+
+
+
+# commands that should be run before installing packages (ex: to add a feed or keys)
+
+
+# your regular RUN statements here
+# Install required packages
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    dos2unix \
+    python3-minimal \
+    python3-pip \
+    python3-setuptools \
+    qml-module-qtquick-controls \
+    qml-module-qtquick-controls2 \
+    qml-module-qtquick2 \
+    python3-pyside2.qtwidgets \
+    python3-pyside2.qtgui \
+    python3-pyside2.qtqml \
+    python3-pyside2.qtcore \
+    python3-pyside2.qtquick \
+    python3-pyside2.qtnetwork \
+    qml-module-qtquick-dialogs \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --upgrade pip
+
+RUN if [ ! -z "qml-module-qtcharts" ]; then \
+    apt-get -q -y update \
+    && apt-get -q -y install qml-module-qtcharts \
+    && rm -rf /var/lib/apt/lists/* ; \
+    fi
+
+COPY work/setup.sh /setup.sh
+COPY work/cleanup.sh /cleanup.sh
+COPY work/requirements.txt /requirements.txt
+
+WORKDIR /
+RUN dos2unix /requirements.txt &&\
+    dos2unix /setup.sh &&\
+    dos2unix /cleanup.sh &&\
+    chmod a+x /setup.sh &&\
+    chmod a+x /cleanup.sh &&\
+    /setup.sh debug &&\
+    pip install -r /requirements.txt &&\
+    /cleanup.sh debug
+
+COPY work/socket_client /socket_client
+
+# commands that should be run after all packages have been installed (RUN/COPY/ADD)
+
+
+
+
+
+USER torizon
+WORKDIR /socket_client
+
+CMD /usr/bin/python3 main.py 
+
+# commands that will run on the target (ENTRYPOINT or CMD)
+
